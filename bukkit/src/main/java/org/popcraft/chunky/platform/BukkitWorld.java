@@ -10,7 +10,6 @@ import org.popcraft.chunky.ChunkyBukkit;
 import org.popcraft.chunky.platform.util.Location;
 import org.popcraft.chunky.util.Input;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -18,7 +17,6 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 public class BukkitWorld implements World {
     private static final int TICKING_LOAD_DURATION = Input.tryInteger(System.getProperty("chunky.tickingLoadDuration")).orElse(0);
@@ -154,15 +152,10 @@ public class BukkitWorld implements World {
 
     @Override
     public Optional<Path> getDirectory(final String name) {
-        if (name != null) {
-            try (Stream<Path> paths = Files.walk(world.getWorldFolder().toPath())) {
-                return paths.filter(Files::isDirectory)
-                        .filter(path -> name.equals(path.getFileName().toString()))
-                        .findFirst();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        if (name == null) {
+            return Optional.empty();
         }
-        return Optional.empty();
+        final Path dir = world.getWorldFolder().toPath().resolve(name);
+        return Files.isDirectory(dir) ? Optional.of(dir) : Optional.empty();
     }
 }
