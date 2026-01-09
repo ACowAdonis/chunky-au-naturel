@@ -13,7 +13,6 @@ import org.popcraft.chunky.util.ChunkCoordinate;
 import org.popcraft.chunky.util.Input;
 import org.popcraft.chunky.util.Pair;
 import org.popcraft.chunky.util.RegionCache;
-import org.popcraft.chunky.util.RegionCacheMetrics;
 import org.popcraft.chunky.util.TranslationKey;
 
 import java.util.Deque;
@@ -62,9 +61,6 @@ public class GenerationTask implements Runnable {
         this.shape = ShapeFactory.getShape(selection);
         this.progress = new Progress(selection.world().getName());
         this.worldState = chunky.getRegionCache().getWorld(selection.world().getName());
-        // Log profiling status at task creation
-        System.out.println("[Chunky] GenerationTask created. Profiling is: " +
-            (RegionCacheMetrics.isEnabled() ? "ENABLED" : "DISABLED"));
     }
 
     private void update(final int chunkX, final int chunkZ, final boolean loaded) {
@@ -120,11 +116,6 @@ public class GenerationTask implements Runnable {
         if (updateIntervalElapsed) {
             if (!silentMode) {
                 progress.sendUpdate(chunky.getServer().getConsole());
-            }
-            // Log RegionCache metrics if profiling enabled
-            if (RegionCacheMetrics.isEnabled()) {
-                final RegionCacheMetrics.MetricsSnapshot snapshot = worldState.getMetrics().getSnapshot();
-                System.out.println(snapshot.toString());
             }
             chunky.getEventBus().call(new GenerationTaskUpdateEvent(this));
             updateTime.set(currentTime);

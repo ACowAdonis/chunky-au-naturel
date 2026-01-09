@@ -18,7 +18,6 @@ public class RegionCache {
     @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
     public static final class WorldState {
         private final Map<Long, BitSet> regions = new ConcurrentHashMap<>();
-        private final RegionCacheMetrics metrics = new RegionCacheMetrics();
 
         public void setGenerated(final int x, final int z) {
             final int regionX = x >> 5;
@@ -26,17 +25,8 @@ public class RegionCache {
             final long regionKey = ChunkMath.pack(regionX, regionZ);
             final BitSet region = regions.computeIfAbsent(regionKey, v -> new BitSet());
             final int chunkIndex = ChunkMath.regionIndex(x, z);
-
-            if (RegionCacheMetrics.isEnabled()) {
-                final long startTime = System.nanoTime();
-                synchronized (region) {
-                    region.set(chunkIndex);
-                }
-                metrics.recordWrite(System.nanoTime() - startTime);
-            } else {
-                synchronized (region) {
-                    region.set(chunkIndex);
-                }
+            synchronized (region) {
+                region.set(chunkIndex);
             }
         }
 
@@ -49,24 +39,9 @@ public class RegionCache {
                 return false;
             }
             final int chunkIndex = ChunkMath.regionIndex(x, z);
-
-            if (RegionCacheMetrics.isEnabled()) {
-                final long startTime = System.nanoTime();
-                final boolean result;
-                synchronized (region) {
-                    result = region.get(chunkIndex);
-                }
-                metrics.recordRead(System.nanoTime() - startTime);
-                return result;
-            } else {
-                synchronized (region) {
-                    return region.get(chunkIndex);
-                }
+            synchronized (region) {
+                return region.get(chunkIndex);
             }
-        }
-
-        public RegionCacheMetrics getMetrics() {
-            return metrics;
         }
     }
 }
