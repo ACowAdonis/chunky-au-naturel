@@ -13,6 +13,7 @@ import org.popcraft.chunky.util.ChunkCoordinate;
 import org.popcraft.chunky.util.Input;
 import org.popcraft.chunky.util.Pair;
 import org.popcraft.chunky.util.RegionCache;
+import org.popcraft.chunky.util.RegionCacheMetrics;
 import org.popcraft.chunky.util.TranslationKey;
 
 import java.util.Deque;
@@ -116,6 +117,11 @@ public class GenerationTask implements Runnable {
         if (updateIntervalElapsed) {
             if (!silentMode) {
                 progress.sendUpdate(chunky.getServer().getConsole());
+            }
+            // Log RegionCache metrics if profiling enabled
+            if (RegionCacheMetrics.isEnabled()) {
+                final RegionCacheMetrics.MetricsSnapshot snapshot = worldState.getMetrics().getSnapshot();
+                chunky.getServer().getConsole().sendMessage(snapshot.toString());
             }
             chunky.getEventBus().call(new GenerationTaskUpdateEvent(this));
             updateTime.set(currentTime);
