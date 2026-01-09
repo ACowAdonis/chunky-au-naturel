@@ -62,6 +62,9 @@ public class GenerationTask implements Runnable {
         this.shape = ShapeFactory.getShape(selection);
         this.progress = new Progress(selection.world().getName());
         this.worldState = chunky.getRegionCache().getWorld(selection.world().getName());
+        // Log profiling status at task creation
+        System.out.println("[Chunky] GenerationTask created. Profiling is: " +
+            (RegionCacheMetrics.isEnabled() ? "ENABLED" : "DISABLED"));
     }
 
     private void update(final int chunkX, final int chunkZ, final boolean loaded) {
@@ -120,11 +123,8 @@ public class GenerationTask implements Runnable {
             }
             // Log RegionCache metrics if profiling enabled
             if (RegionCacheMetrics.isEnabled()) {
-                chunky.getServer().getConsole().sendMessage("=== PROFILING IS ENABLED ===");
                 final RegionCacheMetrics.MetricsSnapshot snapshot = worldState.getMetrics().getSnapshot();
-                chunky.getServer().getConsole().sendMessage(snapshot.toString());
-            } else {
-                chunky.getServer().getConsole().sendMessage("=== PROFILING IS DISABLED ===");
+                System.out.println(snapshot.toString());
             }
             chunky.getEventBus().call(new GenerationTaskUpdateEvent(this));
             updateTime.set(currentTime);
