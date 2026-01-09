@@ -12,6 +12,15 @@ import java.util.concurrent.atomic.LongAdder;
 public class RegionCacheMetrics {
     private static final boolean ENABLED = !Boolean.getBoolean("chunky.metrics.disabled");
 
+    static {
+        // Log status at startup so users know if profiling is active
+        final String status = ENABLED ? "ENABLED" : "DISABLED";
+        System.out.println("[Chunky] Performance profiling is " + status);
+        if (ENABLED) {
+            System.out.println("[Chunky] Lock contention metrics will be logged with each progress update");
+        }
+    }
+
     // Read operations
     private final LongAdder readOps = new LongAdder();
     private final LongAdder readLockWaitNanos = new LongAdder();
@@ -102,15 +111,18 @@ public class RegionCacheMetrics {
         @Override
         public String toString() {
             return String.format(
-                "RegionCache Metrics (%.1fs elapsed):\n" +
+                "\n=== CHUNKY PERFORMANCE METRICS (%.1fs elapsed) ===\n" +
                 "  Reads:  %,d ops (%.1f/s, avg wait: %.2fµs)\n" +
                 "  Writes: %,d ops (%.1f/s, avg wait: %.2fµs)\n" +
-                "  Total lock wait time: %.3fs (%.1f%% contention)\n" +
-                "  Recommendation: %s",
+                "  Total lock wait time: %.3fs\n" +
+                "  LOCK CONTENTION: %.1f%%\n" +
+                "  Recommendation: %s\n" +
+                "==========================================",
                 elapsedMs / 1000.0,
                 readOperations, getReadOpsPerSecond(), getAvgReadWaitMicros(),
                 writeOperations, getWriteOpsPerSecond(), getAvgWriteWaitMicros(),
-                getTotalWaitTimeSeconds(), getContentionPercentage(),
+                getTotalWaitTimeSeconds(),
+                getContentionPercentage(),
                 getRecommendation()
             );
         }

@@ -120,8 +120,11 @@ public class GenerationTask implements Runnable {
             }
             // Log RegionCache metrics if profiling enabled
             if (RegionCacheMetrics.isEnabled()) {
+                chunky.getServer().getConsole().sendMessage("=== PROFILING IS ENABLED ===");
                 final RegionCacheMetrics.MetricsSnapshot snapshot = worldState.getMetrics().getSnapshot();
                 chunky.getServer().getConsole().sendMessage(snapshot.toString());
+            } else {
+                chunky.getServer().getConsole().sendMessage("=== PROFILING IS DISABLED ===");
             }
             chunky.getEventBus().call(new GenerationTaskUpdateEvent(this));
             updateTime.set(currentTime);
