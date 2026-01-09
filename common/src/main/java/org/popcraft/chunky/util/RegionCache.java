@@ -34,10 +34,10 @@ public class RegionCache {
             final int regionX = x >> 5;
             final int regionZ = z >> 5;
             final long regionKey = ChunkMath.pack(regionX, regionZ);
-            if (!regions.containsKey(regionKey)) {
+            final BitSet region = regions.get(regionKey);
+            if (region == null) {
                 return false;
             }
-            final BitSet region = regions.get(regionKey);
             final int chunkIndex = ChunkMath.regionIndex(x, z);
             synchronized (region) {
                 return region.get(chunkIndex);

@@ -22,11 +22,11 @@ public record ChunkCoordinate(int x, int z) implements Comparable<ChunkCoordinat
 
     @Override
     public int hashCode() {
-        return Objects.hash(x, z);
+        return (x * 31) + z;
     }
 
     @Override
     public String toString() {
-        return String.format("%d, %d", x, z);
+        return x + ", " + z;
     }
 }

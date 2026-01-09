@@ -3,10 +3,9 @@ package org.popcraft.chunky.event;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 public final class EventBus {
@@ -22,16 +21,14 @@ public final class EventBus {
         accept = acceptMethodHandle;
     }
 
-    private final Map<Class<?>, Set<Consumer<?>>> subscribers = new HashMap<>();
+    private final Map<Class<?>, Set<Consumer<?>>> subscribers = new ConcurrentHashMap<>();
 
     public <T> void subscribe(final Class<T> eventClass, final Consumer<T> subscriber) {
-        subscribers.computeIfAbsent(eventClass, x -> new HashSet<>());
-        subscribers.get(eventClass).add(subscriber);
+        subscribers.computeIfAbsent(eventClass, x -> ConcurrentHashMap.newKeySet()).add(subscriber);
     }
 
     public <T> void unsubscribe(final Class<T> eventClass, final Consumer<T> subscriber) {
-        subscribers.computeIfAbsent(eventClass, x -> new HashSet<>());
-        subscribers.get(eventClass).remove(subscriber);
+        subscribers.computeIfAbsent(eventClass, x -> ConcurrentHashMap.newKeySet()).remove(subscriber);
     }
 
     public void unsubscribeAll() {
@@ -44,10 +41,14 @@ public final class EventBus {
 
     public void call(final Object event) {
         final Class<?> eventClass = event.getClass();
-        if (accept == null || !subscribers.containsKey(eventClass)) {
+        if (accept == null) {
             return;
         }
-        subscribers.get(eventClass).forEach(subscriber -> {
+        final Set<Consumer<?>> eventSubscribers = subscribers.get(eventClass);
+        if (eventSubscribers == null) {
+            return;
+        }
+        eventSubscribers.forEach(subscriber -> {
             try {
                 accept.invoke(subscriber, event);
             } catch (Throwable e) {

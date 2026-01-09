@@ -13,12 +13,20 @@ public class TaskScheduler {
     private final Set<Future<?>> futures = ConcurrentHashMap.newKeySet();
 
     public TaskScheduler() {
+        final int availableProcessors = Runtime.getRuntime().availableProcessors();
+        final int coreThreads = Input.tryInteger(System.getProperty("chunky.schedulerCoreThreads"))
+                .orElse(Math.max(3, availableProcessors / 2));
+        final int maxThreads = Input.tryInteger(System.getProperty("chunky.schedulerMaxThreads"))
+                .orElse(Math.max(10, availableProcessors * 2));
+        final int queueCapacity = Input.tryInteger(System.getProperty("chunky.schedulerQueueSize"))
+                .orElse(200);
+
         final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
-                3,                              // core threads
-                10,                             // max threads (was Integer.MAX_VALUE - unbounded!)
+                coreThreads,
+                maxThreads,
                 5,                              // keepAliveTime
                 TimeUnit.MINUTES,
-                new LinkedBlockingQueue<>(100)  // bounded queue with capacity 100 (was SynchronousQueue with 0 capacity)
+                new LinkedBlockingQueue<>(queueCapacity)
         );
         threadPoolExecutor.setThreadFactory(runnable -> {
             final Thread thread = new Thread(runnable);

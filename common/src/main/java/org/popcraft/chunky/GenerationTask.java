@@ -29,7 +29,10 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class GenerationTask implements Runnable {
-    private static final int MAX_WORKING_COUNT = Input.tryInteger(System.getProperty("chunky.maxWorkingCount")).orElse(50);
+    private static final int MAX_WORKING_COUNT = Input.tryInteger(System.getProperty("chunky.maxWorkingCount"))
+            .orElse(Math.max(50, Runtime.getRuntime().availableProcessors() * 8));
+    private static final int CALLBACK_THREADS = Input.tryInteger(System.getProperty("chunky.callbackThreads"))
+            .orElse(Math.max(4, Runtime.getRuntime().availableProcessors() / 2));
     private final Chunky chunky;
     private final Selection selection;
     private final Shape shape;
@@ -126,7 +129,7 @@ public class GenerationTask implements Runnable {
         final Semaphore working = new Semaphore(MAX_WORKING_COUNT);
         final Set<CompletableFuture<Void>> pendingFutures = ConcurrentHashMap.newKeySet(MAX_WORKING_COUNT);
         // Add dedicated executor for callbacks to avoid server thread congestion
-        final ExecutorService callbackExecutor = Executors.newFixedThreadPool(4, r -> {
+        final ExecutorService callbackExecutor = Executors.newFixedThreadPool(CALLBACK_THREADS, r -> {
             final Thread thread = new Thread(r);
             thread.setName("Chunky-Callback-" + selection.world().getName());
             thread.setDaemon(true);

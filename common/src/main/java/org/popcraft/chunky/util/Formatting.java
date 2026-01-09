@@ -3,10 +3,15 @@ package org.popcraft.chunky.util;
 import org.popcraft.chunky.Selection;
 import org.popcraft.chunky.shape.ShapeType;
 
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
 public final class Formatting {
-    private static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("#.##");
+    private static final ThreadLocal<DecimalFormat> NUMBER_FORMAT = ThreadLocal.withInitial(() -> {
+        final DecimalFormat format = new DecimalFormat("#.##");
+        format.setRoundingMode(RoundingMode.FLOOR);
+        return format;
+    });
     private static final char[] BINARY_PREFIXES = new char[]{'K', 'M', 'G', 'T', 'P'};
 
     private Formatting() {
@@ -36,7 +41,7 @@ public final class Formatting {
         }
     }
 
-    public static synchronized String number(final double number) {
-        return NUMBER_FORMAT.format(number);
+    public static String number(final double number) {
+        return NUMBER_FORMAT.get().format(number);
     }
 }
