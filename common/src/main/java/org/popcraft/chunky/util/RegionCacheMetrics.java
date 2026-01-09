@@ -6,9 +6,11 @@ import java.util.concurrent.atomic.LongAdder;
 /**
  * Tracks RegionCache performance metrics to measure lock contention.
  * Used to determine if StampedLock optimization (P3.1) is worthwhile.
+ *
+ * Currently ENABLED BY DEFAULT for testing. Will be disabled by default in production.
  */
 public class RegionCacheMetrics {
-    private static final boolean ENABLED = Boolean.getBoolean("chunky.metrics.enabled");
+    private static final boolean ENABLED = !Boolean.getBoolean("chunky.metrics.disabled");
 
     // Read operations
     private final LongAdder readOps = new LongAdder();
